@@ -1,0 +1,33 @@
+﻿Thuật toán đối xứng và thuật đối bất đối xứng.
+Các thuật toán đối xứng ( key ):
+Thuật toán 
+	Loại toán học nền tảng
+	Ứng dụng
+	RSA
+	Phân tích số nguyên
+	Mã hoá , chữ ký số
+	DSA
+	Logarit rời rạc 
+	Chữ ký số
+	ECDH
+	Elliptic Curve DLP
+	Trao đổi khoá
+	ECIES
+	Elliptic Curve DLP
+	Mã hoá
+	ECDSA
+	Elliptic Curve DLP
+	Chữ ký số
+	
+
+Tính đúng đắn “chung” của thuật toán : 
+Yếu tố 
+	Mô tả
+	Cấu trúc toán học chặt chẽ
+	Dựa trên định lý số học, nhóm Abel, đại số tuyến tính
+	Một chiều nhưng có trap door
+	Dễ tính theo 1 chiều, rất khó đảo ngược nếu không biết bí mật
+	Tính lặp lại và xác định 
+	Cùng một đầu vào và khóa sẽ luôn cho kết quả như mong muốn
+	Tính không thể đảo ( hardness )
+	Bảo vệ bởi các bài toán tính toán khó (NP-Hard hoặc chưa có lời giải nhanh)
