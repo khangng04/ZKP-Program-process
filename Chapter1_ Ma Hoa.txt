@@ -1,0 +1,25 @@
+﻿*Chapter1: kế hoạch mã hoá một dữ liệu nào đó 
+
+
+B1: xây dựng môi trường 
+* Chẳng hạn như python với thư viện có sẵn cryptographic
+        B2: các bước mã hoá dữ liệu 
+1. Triển khaii mã hoá và giải mã : 
+* Tạo secret key (128 bit ) bằng cách tạo khoá ngẫu nhiên hoặc bằng một thuật toán an toàn 
+* Sử dụng chế độ hoạt động của AES : CBC (Cipher Block Chaining)
+* Tạo vector khởi tạo (IV) duy nhất đối với mỗi lần mã hoá 
+* Sử dụng thư viện để mã hoá dữ liệu bằng khoá IV đã tạo / đã chọn
+* Sử dụng cùng Secret Key và IV để giải mã 
+* Sử dụng thư viện để giải mã dữ liệu bằng khóa và IV đã chọn.
+* Đảm bảo rằng IV được bảo mật và không bị rò rỉ.
+2. Debugging
+* Xử lý các ngoại lệ và lỗi có thể xảy ra trong quá trình mã hóa và giải mã.
+* Kiểm tra tính toàn vẹn của dữ liệu sau khi giải mã để đảm bảo rằng dữ liệu không bị thay đổi.
+* Lưu trữ khóa bí mật một cách an toàn
+3. Bảo mật khoá bí mật
+* Không bao giờ lưu trữ khóa bí mật trong mã nguồn hoặc trong các tệp cấu hình dễ thấy.
+* Sử dụng các phương pháp an toàn để lưu trữ và quản lý khóa, ví dụ: sử dụng trình quản lý mật khẩu, lưu trữ khóa trong hệ thống quản lý khóa hoặc sử dụng phần cứng bảo mật.
+* Khi truyền khóa bí mật, hãy sử dụng các giao thức an toàn như HTTP
+4. Thử nghiệm và kiểm tra
+* Hãy kiểm tra kỹ lưỡng hệ thống mã hóa của bạn để đảm bảo rằng nó hoạt động chính xác và an toàn.
+* Sử dụng các công cụ và kỹ thuật kiểm thử để tìm ra các lỗ hổng bảo mật tiềm ẩn.
