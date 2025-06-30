@@ -1,0 +1,109 @@
+﻿*Merkle Tree ( python ) : cấu trúc dạng cây nhị phân , các node là sự kết hợp hàm băm của 2 hoặc nhiều node con .
+Sử dụng để chứng minh một phần tử có thuộc danh sách hay không : với hRoot ( là giá trị hàm băm cuối cùng được public và phải có chữ ký số để xác định thật giả  ) , có 2 cách để chứng minh : 
+* Gửi cho người cần xác mình toàn bộ danh sách phần tử 
+* Sử dụng merkle tree
+* Hoặc có thể sử dụng “accumulator” hoặc pairing based
+*Merkle Proofs : tạm dịch là bằng chứng cây Merkle , dùng để chứng mình hoặc kiếm tra một dữ liệu , hay một node nào đó có thuộc cây hay không .
+* Giả sử ta có 1 giá trị Hroot , và ta muốn tìm xem D có thuộc tree hay không , ta cần hash proofs , tức là các hash siblings của D .
+* Merkle proofs bao gồm các đường từ leaf lên Hroot
+* Xác minh xem D có thuộc tree : tính lại Hroot từ “proofs” rồi so sánh với Hroot gốc .
+
+
+*Code python : 
+* Ta có : targetLeaf = “D” là giá trị cần chứng minh
+* Ta cần các nút lá “anh em” với D , merkleProofs= hash(C) | merkleProofs = hash(hash(A)+hash(B))
+* Giá trị Hroot ban đầu : “123abc…”
+* Các biến đầu vào cụ thể : h(A)...,h(D)
+* Các giá trị siblings ( merkleProofs ) :  h(AB) = sha256(h(A)+h(B)) || h(CD) = sha256(h(C)+h(D)) || know_root = sha256(h(AB)+h(CD)) ( đây là root thật ) 
+* *merkleProofs : targer_leaf=D, h(C) sibling của h(D) , h(AB) sibling của h(CD) 
+import hashlib
+
+
+def sha256(data):
+    """Tính hash SHA-256 của dữ liệu"""
+    return hashlib.sha256(data.encode('utf-8')).hexdigest()
+
+
+# 1. Tạo cây Merkle từ đầu
+data = ["A", "B", "C", "D"]
+print("Dữ liệu gốc:", data)
+
+
+# Tính hash cho từng lá
+leaf_hashes = [sha256(item) for item in data]
+print("\nHash các lá:")
+for i, h in enumerate(leaf_hashes):
+    print(f"Hash({data[i]}) = {h}")
+
+
+# Tính hash các tầng
+def build_merkle_tree(leaves):
+    if len(leaves) == 1:
+        return leaves[0]
+    new_level = []
+    for i in range(0, len(leaves), 2):
+        left = leaves[i]
+        right = leaves[i+1] if (i+1 < len(leaves)) else left
+        new_level.append(sha256(left + right))
+    return build_merkle_tree(new_level)
+
+
+merkle_root = build_merkle_tree(leaf_hashes)
+print("\nMerkle Root:", merkle_root)
+
+
+# 2. Tạo Merkle Proof cho "D"
+def get_merkle_proof(index, leaves):
+    proof = []
+    current_index = index
+    current_level = leaves.copy()
+    
+    while len(current_level) > 1:
+        sibling_index = current_index + 1 if current_index % 2 == 0 else current_index - 1
+        if sibling_index < len(current_level):
+            proof.append(current_level[sibling_index])
+        
+        # Lên tầng tiếp theo
+        new_level = []
+        for i in range(0, len(current_level), 2):
+            left = current_level[i]
+            right = current_level[i+1] if (i+1 < len(current_level)) else left
+            new_level.append(sha256(left + right))
+        current_level = new_level
+        current_index = current_index // 2
+    
+    return proof
+
+
+proof_D = get_merkle_proof(3, leaf_hashes)  # D ở index 3
+print("\nMerkle Proof cho D:", proof_D)
+
+
+# 3. Hàm xác minh chính xác
+def verify_merkle_proof(leaf, proof, root, index):
+    current_hash = sha256(leaf)
+    current_index = index
+    
+    for sibling in proof:
+        if current_index % 2 == 0:
+            # Current là left, sibling là right
+            current_hash = sha256(current_hash + sibling)
+        else:
+            # Current là right, sibling là left
+            current_hash = sha256(sibling + current_hash)
+        current_index = current_index // 2
+    
+    return current_hash == root
+
+
+# 4. Kiểm tra
+print("\nKiểm tra với D (index 3):")
+leaf_D = "D"
+valid_D = verify_merkle_proof(leaf_D, proof_D, merkle_root, 3)
+print("Kết quả:", valid_D)  # Phải là True
+
+
+print("\nKiểm tra với E (không tồn tại):")
+leaf_E = "E"
+valid_E = verify_merkle_proof(leaf_E, proof_D, merkle_root, 3)
+print("Kết quả:", valid_E)  # Phải là False
