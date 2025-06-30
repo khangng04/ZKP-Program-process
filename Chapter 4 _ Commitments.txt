@@ -1,0 +1,102 @@
+﻿*Commitment : Là giao thức hai bước để người gửi có thể cam kết một giá trị mà:
+* Không thể thay đổi sau khi cam kết (ràng buộc - binding) : không thể biết m từ C vì có thêm h^r . Vậy nên dù m cố định , cũng không chắc sẽ biết được cam kết vì ‘r’ là ngẫu nhiên -> tạo ra cam kết khác
+
+* Không để lộ giá trị trước khi mở khóa (ẩn giấu - hiding) : là tính ràng buộc , giả sử bạn tìm được cặp (m1 , r1) khác với (m2,r2) , vây thì biểu thức g^m1.h^r1 = g^m2.h^r2 là điều sẽ phá vỡ bài toán logarit rời rạc , là điều bất khả thi với nhóm đủ lớn .
+*Tính chất và ý nghĩa : 
+Tính chất 
+	Ý nghĩa
+	Ràng buộc ( binding ) 
+	Sau khi cam kết , người cam kết không thể thay đổi giá trị của cam kết .
+	Ẩn giấu ( hiding )
+	Người nhận cam kết sẽ không biết giá trị của cam kết cho đến khi được mở 
+	*Một cam kết bao gồm 2 giai đoạn : 
+   * *Giai đoạn cam kết : người thực hiện cam kết sẽ chọn một giá trị ‘v’ và một số ngẫu nhiên gọi là ‘r’ 
+   * Cam kết C = Commit(v , r) ( thường dùng hàm hash hoặc phép toán mật mã)
+   * Gửi C ( cam kết ) cho người nhận nhưng giữ lại ‘v’ và ‘r’
+   * *Giai đoạn tiết lệ ( Reveal / Verify ) : người gửi cam kết sẽ gửi ‘v’ và ‘r’ cho người nhận , người nhận thực hiện tính toán C = Commit(v , r) và so sánh với C ban đầu nhận được từ người gửi -> nếu khớp , thì cam kết là hợp lệ.
+*Ví dụ : Alice thực hiện cam kết với giá trị ‘v’ = abcd và ‘r’ = 12345
+   * Sau đó tiến hành gửi giá trị cam kết với ‘v’ và ‘r’ như trên ( không tiết lộ ‘v’ và ‘r’ , chỉ gửi giá trị Commit )
+   * Bob nhận được Commit từ Alice . 
+   * Giả sử Alice gửi đúng giá trị ‘v’ = abcd và ‘r’ = 12345 , Bob thực hiện C = Commit(v , r) -> đúng 
+   * Alice gửi sai giá trị ‘v’ hoặc ‘r’ , -> Bob thực hiện C = Commit(v , r) trả kết quả sai với Commit ban đầu nhận được -> Alice không thể gian lận.
+*Pedersen Commitment có dạng : 
+C=(v⋅G+r⋅H) hoặc     
+
+
+Trong đó:
+   * C
+   * C: Giá trị cam kết (commitment) – một điểm trên đường cong elliptic.
+   * v: Giá trị cần cam kết (ví dụ: số tiền trong blockchain).
+   * r: Khóa bí mật (blinding factor) – một số ngẫu nhiên để đảm bảo tính ẩn danh.
+   * G: Điểm sinh (generator) của đường cong elliptic (công khai).
+   * H: Một điểm khác trên đường cong (thường được chọn sao cho không ai biết quan hệ giữa G và H
+   *   2. Tính chất quan trọng
+  b) Ẩn danh (Hiding)
+      * Từ C, không thể suy ngược ra v hoặc r (do tính chất của ECDLP - Elliptic Curve Discrete Logarithm Problem).
+  
+
+
+
+*Code : 
+import hashlib
+
+
+def pedersen_commit_simple(v, r):
+    """Mô phỏng Pedersen Commitment dùng SHA-256"""
+    # Chuyển đổi giá trị thành bytes
+    v_bytes = str(v).encode()
+    r_bytes = str(r).encode()
+    
+    # Tính toán "cam kết" (không phải EC, chỉ minh họa)
+    commit = hashlib.sha256(v_bytes + r_bytes).hexdigest()
+    return commit
+
+
+# Ví dụ sử dụng
+v = 10  # Giá trị cần cam kết
+r = 12345  # Số ngẫu nhiên (blinding factor)
+commitment = pedersen_commit_simple(v, r)
+
+
+print("Commitment:", commitment)
+
+
+# Khi cần kiểm tra
+revealed_v = 10
+revealed_r = 1234
+
+
+if pedersen_commit_simple(revealed_v, revealed_r) == commitment:
+    print("✅ Cam kết hợp lệ!")
+else:
+    print("❌ Cam kết không hợp lệ!")
+
+
+Hoặc : 
+from coincurve import PublicKey
+import secrets
+
+
+# Tạo điểm G và H (H là điểm ngẫu nhiên)
+G = PublicKey.from_valid_secret(secrets.token_bytes(32)).format()
+H = PublicKey.from_valid_secret(secrets.token_bytes(32)).format()
+
+
+def pedersen_commit(v, r):
+    # Tính v*G + r*H (trên đường cong elliptic)
+    commit = PublicKey.from_secret(v.to_bytes(32, 'big')).combine([
+        PublicKey.from_secret(r.to_bytes(32, 'big'))
+    ])
+    return commit.format()
+
+
+# Ví dụ
+v = 10
+r = int.from_bytes(secrets.token_bytes(32), 'big')
+C = pedersen_commit(v, r)
+print("Commitment:", C.hex())
+
+
+# Kiểm tra
+C_check = pedersen_commit(v, r)
+print("Hợp lệ!" if C == C_check else "Không hợp lệ!")
