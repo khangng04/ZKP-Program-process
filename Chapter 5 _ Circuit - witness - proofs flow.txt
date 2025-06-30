@@ -1,0 +1,64 @@
+﻿Zkrepl.dev
+Circom 2 documentation
+Circuit - witness - proofs qua ví dụ Bob và Alice : 
+Alice muôns chứng minh cô ấy biết ‘m’ và ‘r’ của circuit trên mà không cần gửi cho Bob chính xác giá trị của ‘m’ và ‘r’ :   
+* Bob sẽ nhận được cam kết trên ( giá trị là duy nhất , không thể thay đổi vì đó là tính chất ràng buộc của cam kết ) 
+* Bob chỉ biết được cam kết , và giá trị của cam kết = 16 , chứ không biết ‘m’ và ‘r’ 
+* Witness của Alice sẽ là    - điều mà Bob không thể biết ! 
+* Alice tiến hành tạo proof với khoá chứng minh và proof là một chuỗi byte rất ngắn bằng ZKSNARKS -> sau đó sẽ tạo ra một chuỗi kí tự rất ngắn 
+* Alice tiến hành gửi khoá chứng minh này cho Bob , Bob verify thành công -> chỉ biết được Alice đã trung thực , chứ không thể suy ra ‘m*’ và ‘r*’ = ‘m’ và ‘r’ .
+  
+
+
+
+****TRƯỜNH HỢP NẾU BOB NGHI NGỜ ALICE MẶC DÙ ĐÃ THỬ ĐÚNG***
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*Code: 
+template PedersenCommitment() {
+    signal input m;
+    signal input r;
+    signal output C;
+
+
+    // Ràng buộc: C = 5^m * 4^r mod 28
+    C <== (pow(5, m) * pow(4, r)) % 28;
+}
+
+
+# Alice tạo proof (chỉ 1 lần)
+proof = zksnark_prove(circuit, {"m": 10, "r": 7})
+
+
+# Bob verify (1 lần duy nhất)
+is_valid = zksnark_verify(proof, C=16)
+
+
+if is_valid:
+    print("✅ Proof hợp lệ - Alice đã chứng minh!")
+else:
+    print("❌ Proof không hợp lệ")
